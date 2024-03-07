@@ -3,41 +3,35 @@ pipeline {
     
     stages {
         stage('Build') {
-            agent {
-                docker {
-                    image 'maven:3.9.0'
-                    args '-v /root/.m2:/root/.m2'
-                }
-            }
             steps {
-                sh 'mvn -B -DskipTests clean package'
+                script {
+                    docker.image('maven:3.9.0').inside {
+                        sh 'mvn -B -DskipTests clean package'
+                    }
+                }
             }
         }
         stage('Test') {
-            agent {
-                docker {
-                    image 'maven:3.9.0'
-                    args '-v /root/.m2:/root/.m2'
-                }
-            }
             steps {
-                sh 'mvn test'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
+                script {
+                    docker.image('maven:3.9.0').inside {
+                        sh 'mvn test'
+                    }
+                }
+                post {
+                    always {
+                        junit 'target/surefire-reports/*.xml'
+                    }
                 }
             }
         }
         stage('Deliver') {
-            agent {
-                docker {
-                    image 'maven:3.9.0'
-                    args '-v /root/.m2:/root/.m2'
-                }
-            }
             steps {
-                sh './jenkins/scripts/deliver.sh'
+                script {
+                    docker.image('maven:3.9.0').inside {
+                        sh './jenkins/scripts/deliver.sh'
+                    }
+                }
             }
         }
     }
